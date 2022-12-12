@@ -4,7 +4,6 @@ import java.io.*;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class Unique4jIpcLock implements Unique4jLock {
@@ -12,14 +11,9 @@ class Unique4jIpcLock implements Unique4jLock {
     /** system temporary directory path */
     private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
-    public final String appId;
-    public final File lockFile;
-    private final IpcFactory ipcFactory;
-    private final ExecutorService executorService;
+    public final ImmutableConfig config;
     private final FirstInstance firstInstanceHandler;
     private final OtherInstance otherInstanceHandler;
-    private final UnexpectedExceptionHandler exceptionHandler;
-
 
     private final AtomicBoolean locked = new AtomicBoolean();
     /** lock server socket */
@@ -31,30 +25,18 @@ class Unique4jIpcLock implements Unique4jLock {
     /** file lock for the lock file RAF object */
     private FileLock fileLock;
 
-    /**
-     * Parameterized constructor.<br>
-     * This constructor allows to explicitly specify the exit strategy for subsequent instances.<br><br>
-     *
-     * The appId must be as unique as possible.
-     * Avoid generic names like "my_app_id" or "hello_world".<br>
-     * A good strategy is to use the entire package name (group ID + artifact ID) along with some random characters.
-     *
-     * @param appId Unique string representing the application ID
-     */
-    public Unique4jIpcLock(String appId,
-                           File lockFile,
-                           IpcFactory ipcFactory,
-                           ExecutorService executorService,
+    public Unique4jIpcLock(Unique4jConfig config,
                            FirstInstance firstInstanceHandler,
-                           OtherInstance otherInstanceHandler,
-                           UnexpectedExceptionHandler exceptionHandler) {
-        this.appId = appId;
-        this.lockFile = lockFile;
-        this.ipcFactory = ipcFactory;
-        this.executorService = executorService;
+                           OtherInstance otherInstanceHandler) {
+        this(new ImmutableConfig(config), firstInstanceHandler, otherInstanceHandler);
+    }
+
+    public Unique4jIpcLock(ImmutableConfig config,
+                           FirstInstance firstInstanceHandler,
+                           OtherInstance otherInstanceHandler) {
+        this.config = config;
         this.firstInstanceHandler = firstInstanceHandler;
         this.otherInstanceHandler = otherInstanceHandler;
-        this.exceptionHandler = exceptionHandler;
     }
 
     @Override
@@ -62,7 +44,7 @@ class Unique4jIpcLock implements Unique4jLock {
         // try to lock file
         boolean locked0;
         try {
-            lockRaf = new RandomAccessFile(lockFile, "rws");
+            lockRaf = new RandomAccessFile(config.getLockFile(), "rws");
             fileLock = lockRaf.getChannel().tryLock();
             locked.set(locked0 = fileLock != null);
         } catch (IOException | OverlappingFileLockException e) {
@@ -85,14 +67,14 @@ class Unique4jIpcLock implements Unique4jLock {
     private void startServer() {
         // try to start the server
         try {
-            server = ipcFactory.createIpcServer(new File(TEMP_DIR), appId);
+            server = config.getIpcFactory().createIpcServer(new File(TEMP_DIR), config.getAppId());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
         // server created successfully; this is the first instance
         // keep listening for data from other instances
-        executorService.submit(() -> {
+        config.getExecutorService().submit(() -> {
             while (!server.isClosed()) {
                 final IpcClient client0;
                 try {
@@ -100,12 +82,12 @@ class Unique4jIpcLock implements Unique4jLock {
                     client0 = server.accept();
                 } catch (IOException e) {
                     if (!server.isClosed())
-                        exceptionHandler.unexpectedException(server, null, e);
+                        config.getExceptionHandler().unexpectedException(server, null, e);
                     continue;
                 }
 
                 // handle socket on a different thread to allow parallel connections
-                executorService.submit(() -> {
+                config.getExecutorService().submit(() -> {
                     try(
                             final IpcClient client = client0;
                             final DataOutputStream dos = new DataOutputStream(client.getOutputStream());
@@ -115,17 +97,17 @@ class Unique4jIpcLock implements Unique4jLock {
                             // read message length from client
                             dis.readInt();
                             // write response to client
-                            dos.writeUTF(appId);
+                            dos.writeUTF(config.getAppId());
                             dos.flush();
                         } catch (IOException e) {
-                            exceptionHandler.unexpectedException(server, client, e);
+                            config.getExceptionHandler().unexpectedException(server, client, e);
                             return;
                         }
 
                         if(firstInstanceHandler != null)
                             firstInstanceHandler.onOtherInstanceStarted(client);
                     } catch (IOException e) {
-                        exceptionHandler.unexpectedException(server, null, e);
+                        config.getExceptionHandler().unexpectedException(server, null, e);
                     }
                 });
             }
@@ -136,7 +118,7 @@ class Unique4jIpcLock implements Unique4jLock {
         // try to establish connection to server
         final IpcClient client0;
         try {
-            client0 = ipcFactory.createIpcClient(new File(TEMP_DIR), appId);
+            client0 = config.getIpcFactory().createIpcClient(new File(TEMP_DIR), config.getAppId());
         } catch (IOException e) {
             // connection failed try to start server
             startServer();
@@ -162,7 +144,7 @@ class Unique4jIpcLock implements Unique4jLock {
                 response = null;
             }
 
-            validResponseFound = response != null && response.equals(appId);
+            validResponseFound = response != null && response.equals(config.getAppId());
 
             if(validResponseFound && otherInstanceHandler != null)
                 otherInstanceHandler.onFirstInstanceFound(client);
@@ -197,7 +179,7 @@ class Unique4jIpcLock implements Unique4jLock {
             lockRaf = null;
 
             // try to delete lock file
-            Files.deleteIfExists(lockFile.toPath());
+            Files.deleteIfExists(config.getLockFile().toPath());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
