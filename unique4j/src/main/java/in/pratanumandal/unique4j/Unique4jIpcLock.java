@@ -217,7 +217,8 @@ class Unique4jIpcLock implements Unique4jLock {
         lockRaf = null;
 
         // try to delete lock file
-        Files.deleteIfExists(getLockFile().toPath());
+        // TODO: deleting the lock file throws an exception, even if it's actually unlocked
+        // Files.deleteIfExists(getLockFile().toPath());
     }
 
     @Override
