@@ -1,4 +1,5 @@
 # Unique4j
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.furrrlo/unique4j)](https://search.maven.org/artifact/io.github.furrrlo/unique4j)
 ![unique4j logo](unique4j.png)
 
 ## Introduction
