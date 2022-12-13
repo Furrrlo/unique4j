@@ -14,19 +14,19 @@ It is compatible with Java 1.8+ and is platform independent.
 ```xml
 <dependencies>
     <dependency>
-        <groupId>tk.pratanumandal</groupId>
+        <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j</artifactId>
         <version>2.0.0</version>
     </dependency>
     <!-- For unix sockets in Java < 16 -->
     <dependency>
-        <groupId>tk.pratanumandal</groupId>
+        <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j-junixsocket</artifactId>
         <version>2.0.0</version>
     </dependency>
     <!-- For unix sockets in Java 16+ -->
     <dependency>
-        <groupId>tk.pratanumandal</groupId>
+        <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j-unix-socket-channel</artifactId>
         <version>2.0.0</version>
     </dependency>
