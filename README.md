@@ -1,229 +1,200 @@
 # Unique4j
-
 ![unique4j logo](unique4j.png)
-
-<br/>
 
 ## Introduction
 
-Unique4j is a cross-platform Java library to allow only single instance of a Java application to run and enable communication between first instance and subsequent instances.
+Unique4j is a cross-platform Java library to allow only single instance of a Java application to run and enable
+communication between first instance and subsequent instances.
 
-It is compatible with Java 1.6+ and is platform independent.
-
-<br>
+It is compatible with Java 1.8+ and is platform independent.
 
 ## Dependency Management
 
 ### Maven
-
+```xml
+<dependencies>
     <dependency>
         <groupId>tk.pratanumandal</groupId>
         <artifactId>unique4j</artifactId>
-        <version>1.4</version>
+        <version>2.0.0</version>
     </dependency>
+    <!-- For unix sockets in Java < 16 -->
+    <dependency>
+        <groupId>tk.pratanumandal</groupId>
+        <artifactId>unique4j-junixsocket</artifactId>
+        <version>2.0.0</version>
+    </dependency>
+    <!-- For unix sockets in Java 16+ -->
+    <dependency>
+        <groupId>tk.pratanumandal</groupId>
+        <artifactId>unique4j-unix-socket-channel</artifactId>
+        <version>2.0.0</version>
+    </dependency>
+</dependencies>
+```
 
 ### Gradle
-
-    dependencies {
-        implementation 'tk.pratanumandal:unique4j:1.4'
-    }
-
-<br>
+```groovy
+dependencies {
+    implementation 'tk.pratanumandal:unique4j:2.0.0'
+    // For unix sockets in Java < 16
+    implementation 'tk.pratanumandal:unique4j-junixsocket:2.0.0'
+    // For unix sockets in Java 16+
+    implementation 'tk.pratanumandal:unique4j-unix-socket-channel:2.0.0'
+}
+```
 
 ## How To Use
 
-Declare an application unique ID which is a common constant for all the instances. This ID must be as unique as possible. A good strategy is to use the entire package name (group ID + artifact ID) along with some random characters.
+The library offers a higher level API, which is easier to use, and a lower lever API
+which offers more control.
+
+Regardless of which one you use, the first step is declaring an application unique ID
+which is a common constant for all the instances. This ID must be as unique as possible.
+A good strategy is to use the entire package name (group ID + artifact ID) along with some random characters.
+
+```java
+// unique application ID
+public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.8";
+```
+
+## High level API
+
+```java
+
+import java.io.IOException;
+
+public class Unique4jDemo {
 
     // unique application ID
     public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.6";
 
-<br>
-
-Create an instance of <code>Unique</code> class.
-
-    // create unique instance
-    Unique4j unique = new Unique4j(APP_ID) {
-        @Override
-        public void receiveMessage(String message) {
-            // print received message (timestamp)
-            System.out.println(message);
-        }
-
-        @Override
-        public String sendMessage() {
-            // send timestamp as message
-            Timestamp ts = new Timestamp(new Date().getTime());
-            return "Another instance launch attempted: " + ts.toString();
-        }
-        
-        /* It is not mandatory to override this method
-         * By default, the stack trace is printed
-         */
-        @Override
-        public void handleException(Exception exception) {
-            // display the exception message
-            System.out.println(exception.getMessage());
-        }
-
-        /* It is not mandatory to override this method
-         * By default, the subsequent instance simply exits
-         * This method is not invoked if AUTO_EXIT is turned off
-         */
-        @Override
-        public void beforeExit() {
-            // display exit message
-            System.out.println("Exiting subsequent instance.");
-        }
-    };
-   
-<br>
-
-Alternatively, you can declare to turn off automatic exit for subsequent instances.
-
-    // create unique instance with AUTO_EXIT turned off
-    Unique4j unique = new Unique4j(APP_ID,
-                                   false) // second parameter is for AUTO_EXIT (false turns it off)
-    { 
-        ...
-        // Note: beforeExit() method, even if overridden, is never invoked if AUTO_EXIT is turned off
-    }
-    
-<br>
-
-Sending list of strings instead of a single string message.
-    
-    // create Unique4j instance
-    Unique4j unique = new Unique4jList(APP_ID) {
-        @Override
-        protected List<String> sendMessageList() {
-            List<String> messageList = new ArrayList<String>();
-
-            messageList.add("Message 1");
-            messageList.add("Message 2");
-            messageList.add("Message 3");
-            messageList.add("Message 4");
-
-            return messageList;
-        }
-
-        @Override
-        protected void receiveMessageList(List<String> messageList) {
-            for (String message : messageList) {
-                System.out.println(message);
-            }
-        }
-    };
-
-<br>
-
-Sending map of string key-value pairs instead of a single string message.
-    
-    // create Unique4j instance
-    Unique4j unique = new Unique4jMap(APP_ID) {
-        @Override
-        protected Map<String, String> sendMessageMap() {
-            Map<String, String> messageMap = new HashMap<String, String>();
-            
-            messageMap.put("key1", "Message 1");
-            messageMap.put("key2", "Message 2");
-            messageMap.put("key3", "Message 3");
-            messageMap.put("key4", "Message 4");
-            
-            return messageMap;
-        }
-    
-        @Override
-        protected void receiveMessageMap(Map<String, String> messageMap) {
-            for (Entry<String, String> entry : messageMap.entrySet()) {
-                System.out.println(entry.getKey() + " : " + entry.getValue());
-            }
-        }
-    };
-
-<br>
-
-Try to obtain a lock using the <code>Unique</code> object.
-    
-    // try to obtain lock
-    boolean lockFlag = false;
-    try {
-        lockFlag = unique.acquireLock();
-    } catch (Unique4jException e) {
-        e.printStackTrace();
-    }
-    
-    // perform long running tasks here
-    
-<br>
-
-Free the lock using the <code>Unique</code> object.
-    
-    // long running tasks end here
-    
-    // try to free the lock before exiting program
-    boolean lockFreeFlag = false;
-    try {
-        lockFreeFlag = unique.freeLock();
-    } catch (Unique4jException e) {
-        e.printStackTrace();
-    }
-
-<br>
-
-## Demonstration
-
-To put it all together, the following is a simple example of the basic usage of Unique4j.
-
-    import java.sql.Timestamp;
-    import java.util.Date;
-    
-    import tk.pratanumandal.unique4j.Unique4j;
-    import tk.pratanumandal.unique4j.exception.Unique4jException;
-    
-    public class Unique4jDemo {
-    
-        // unique application ID
-        public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.6";
-
-        public static void main(String[] args) throws Unique4jException, InterruptedException {
-
-            // create unique instance
-            Unique4j unique = new Unique4j(APP_ID) {
-                @Override
-                public void receiveMessage(String message) {
-                    // print received message (timestamp)
-                    System.out.println(message);
+    public static void main(String[] args) throws IOException {
+        // create unique instance
+        Unique4j.requestSingleInstance(APP_ID, instance -> instance.firstInstance(ctx -> {
+            // This is the first app instance: here the application can be started up.
+            // Make swing gui, start stuff up, etc.
+            // The lock is already held, no other app instance can take it
+            // Any message sent during this init phase will be queued up and re-received afterwards.
+            final List<Runnable> onFrameDispose = new ArrayList<>();
+            final JFrame frame = new JFrame("Test window") {
+                {
+                    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 }
 
                 @Override
-                public String sendMessage() {
-                    // send timestamp as message
-                    Timestamp ts = new Timestamp(new Date().getTime());
-                    return "Another instance launch attempted: " + ts.toString();
-                }
-
-                @Override
-                public void handleException(Exception exception) {  // this method is optional
-                    // display the exception message
-                    System.out.println(exception.getMessage());
-                }
-
-                @Override
-                public void beforeExit() {  // this method is optional
-                    // display exit message
-                    System.out.println("Exiting subsequent instance.");
+                public void dispose() {
+                    super.dispose();
+                    onFrameDispose.forEach(Runnable::run);
                 }
             };
+            frame.setVisible(true);
 
-            // try to obtain lock
-            boolean lockFlag = unique.acquireLock();
+            // Register other instances listener
+            ctx.otherInstancesListener(otherInstanceClient -> {
+                // Make window popup/reply to client
+                final DataOutputStream dos = new DataOutputStream(otherInstanceClient.getOutputStream());
+                dos.writeUTF("Hello!");
 
-            // sleep the main thread for 30 seconds to simulate long running tasks
-            Thread.sleep(30000);
+                SwingUtilities.invokeLater(() -> {
+                    frame.setExtendedState(JFrame.ICONIFIED);
+                    SwingUtilities.invokeLater(() -> frame.setExtendedState(JFrame.NORMAL));
+                });
+            });
 
-            // try to free the lock before exiting program
-            boolean lockFreeFlag = unique.freeLock();
+            // Do heavy lifting here:
+            // - Start GUI and wait for the user to close it
+            return ctx.waitForEvent(onFrameDispose::add);
+            // - Do lengthy task that takes a lot of time
+            return () -> {
+                for (int i = 0; i < 100000; i++)
+                    System.out.println("yay");
+            };
+            // Once this Runnable ends, the instance lock will be released automatically
+        }).otherInstances(ctx -> {
+            // Called in case this is not the first app instance
 
-        }
-	
+            // Register first instance listener, allows to send messages
+            ctx.firstInstanceListener(firstInstanceClient -> {
+                // Send messages to the first instance
+                // There's an open connection here, so shutting down is not supposed to be happening here
+                final DataOutputStream dos = new DataOutputStream(firstInstanceClient.getOutputStream());
+                dos.writeUTF("I'm another instance");
+            });
+
+            // Do other stuff in here, in case it's needed (ex. shutting down, etc)
+            return ctx.thenExit(0);
+        }));
+
+        // Execution will continue here once either the firstInstance inner lambda or
+        // otherInstances inner lambda is executed
     }
+}
+```
+
+## Low level API
+
+The low level API follows the standard Java Lock pattern:
+```java
+public class Unique4jDemo {
+
+    // unique application ID
+    public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.6";
+
+    public static void main(String[] args) throws IOException {
+        final Unique4jLock lock = Unique4j.newLock(
+                APP_ID,
+                otherInstanceClient -> {
+                    // Other instances listener
+                    // Here you can reply to clients
+                },
+                firstInstanceClient -> {
+                    // Send messages to the first instance
+                    // There's an open connection here, so shutting down is not supposed to be happening here
+                });
+
+        if(lock.tryLock()) {
+            try {
+                // This is the first app instance: here the application can be started up.
+                // Make swing gui, start stuff up, etc.
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            // Do other stuff in here, in case it's needed (ex. shutting down, etc)
+        }
+    }
+}
+```
+
+## Configuration
+
+Configuration options can be changed by using `Unique4j#withConfig(Unique4jConfig)`
+```java
+public class Unique4jDemo {
+
+    // unique application ID
+    public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.6";
+
+    public static void main(String[] args) throws IOException {
+        final Unique4jLock lock = Unique4j
+                .withConfig(Unique4jConfig.createDefault(APP_ID))
+                .requestSingleInstance(instance -> { /* ... */ });
+        // or
+        final Unique4jLock lock = Unique4j.withConfig(Unique4jConfig.createDefault(APP_ID)).newLock(
+                otherInstanceClient -> { /* ... */ },
+                firstInstanceClient -> { /* ... */ });
+    }
+}
+```
+
+Under the hood, the library uses sockets to do IPC between the different app instances.
+By default, it will bind a TCP socket on the first available port starting from the 3000.
+This behaviour can be tweaked by specifying a different `IpcFactory` in `Unique4jConfig#ipcFactory(IpcFactory)`.
+The base library ships with:
+- DynamicPortSocketIpcFactory: binds a TCP socket on the first port it finds available starting from the given one
+- StaticPortSocketIpcFactory: binds a TCP socket on the given port
+
+In addition, a unix socket can be used
+- In Java 16+ by adding the `tk.pratanumandal:unique4j-unix-socket-channel` Maven artifact, which uses [JEP-380: Unix domain socket channels](https://openjdk.org/jeps/380)
+- In Java < 16 by adding the `tk.pratanumandal:unique4j-junixsocket` Maven artifact, which uses the [junixsocket library](https://kohlschutter.github.io/junixsocket/)
