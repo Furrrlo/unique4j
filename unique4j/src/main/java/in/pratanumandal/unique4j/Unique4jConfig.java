@@ -16,8 +16,22 @@ public interface Unique4jConfig {
                 .exceptionHandler(JulUnexpectedExceptionHandler.INSTANCE);
     }
 
+    /**
+     * The appId must be as unique as possible.
+     * Avoid generic names like "my_app_id" or "hello_world".<br>
+     * A good strategy is to use the entire package name (group ID + artifact ID) along with some random characters.
+     *
+     * @return Unique string representing the application ID
+     */
     String appId();
 
+    /**
+     * The appId must be as unique as possible.
+     * Avoid generic names like "my_app_id" or "hello_world".<br>
+     * A good strategy is to use the entire package name (group ID + artifact ID) along with some random characters.
+     *
+     * @param appId Unique string representing the application ID
+     */
     Unique4jConfig appId(String appId);
 
     File lockFolder();
