@@ -51,6 +51,8 @@ public abstract class SocketChannelIpcFactory implements IpcFactory {
     protected static class SocketChannelIpcClient implements IpcClient {
 
         protected final SocketChannel channel;
+        protected InputStream is;
+        protected OutputStream os;
 
         public SocketChannelIpcClient(SocketChannel channel) {
             this.channel = channel;
@@ -58,12 +60,16 @@ public abstract class SocketChannelIpcFactory implements IpcFactory {
 
         @Override
         public InputStream getInputStream() {
-            return Channels.newInputStream(channel);
+            if(is == null)
+                is = Channels.newInputStream(channel);
+            return is;
         }
 
         @Override
         public OutputStream getOutputStream() {
-            return Channels.newOutputStream(channel);
+            if(os == null)
+                os = Channels.newOutputStream(channel);
+            return os;
         }
 
         @Override
