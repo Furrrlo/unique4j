@@ -3,7 +3,7 @@ package in.pratanumandal.unique4j;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 
-public class MutableConfig implements Unique4jConfig {
+class MutableConfig implements Unique4jConfig {
 
     private String appId;
     private File lockFolder;
