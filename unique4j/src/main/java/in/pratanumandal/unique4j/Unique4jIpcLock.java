@@ -45,11 +45,13 @@ class Unique4jIpcLock implements Unique4jLock {
         for(int tries = 0; ; tries++) {
             // try to lock file
             boolean locked0;
+            Throwable notLockedException = null;
             try {
                 lockRaf = new RandomAccessFile(config.getLockFile(), "rws");
                 fileLock = lockRaf.getChannel().tryLock();
                 locked.set(locked0 = fileLock != null);
             } catch (IOException | OverlappingFileLockException e) {
+                notLockedException = e;
                 locked0 = false;
             }
 
@@ -70,6 +72,8 @@ class Unique4jIpcLock implements Unique4jLock {
                     continue;
 
                 final Throwable cause = ex.getCause();
+                if(notLockedException != null)
+                    cause.addSuppressed(notLockedException);
                 if(cause instanceof Error)
                     throw (Error) cause;
                 if(cause instanceof RuntimeException)
