@@ -93,7 +93,6 @@
 			    <configuration>
 			    	<serverId>ossrh</serverId>
 			    	<nexusUrl>https://oss.sonatype.org</nexusUrl>
-					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
 			    </configuration>
 			</plugin>
 			<plugin>
