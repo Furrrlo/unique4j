@@ -4,15 +4,15 @@ import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface Unique4jInstance {
+public interface Unique4j {
 
     static InstanceSelector config(String appId, Function<Unique4jConfig, Unique4jConfig> makeConfig) {
         final Unique4jConfig config = makeConfig.apply(Unique4jConfig.createDefault(appId));
-        return new Unique4jInstanceImpl(config);
+        return new Unique4jAppInstance(config);
     }
 
     static void requestSingleInstance(String appId, Consumer<InstanceConfig> instanceConfig) throws IOException {
-        new Unique4jInstanceImpl(Unique4jConfig.createDefault(appId)).requestSingleInstance(instanceConfig);
+        new Unique4jAppInstance(Unique4jConfig.createDefault(appId)).requestSingleInstance(instanceConfig);
     }
 
     interface InstanceSelector {

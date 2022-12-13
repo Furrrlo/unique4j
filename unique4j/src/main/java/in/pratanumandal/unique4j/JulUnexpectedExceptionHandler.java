@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 class JulUnexpectedExceptionHandler implements UnexpectedExceptionHandler {
 
     public static final JulUnexpectedExceptionHandler INSTANCE = new JulUnexpectedExceptionHandler();
-    private static final Logger LOGGER = Logger.getLogger(Unique4jInstance.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Unique4j.class.getName());
 
     private JulUnexpectedExceptionHandler() {
     }

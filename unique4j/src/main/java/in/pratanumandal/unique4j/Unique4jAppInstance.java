@@ -4,32 +4,32 @@ import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-class Unique4jInstanceImpl implements Unique4jInstance.InstanceSelector {
+class Unique4jAppInstance implements Unique4j.InstanceSelector {
 
     private final ImmutableConfig config;
 
-    private Function<Unique4jInstance.FirstInstanceContext, Runnable> firstInstanceContextFunction;
+    private Function<Unique4j.FirstInstanceContext, Runnable> firstInstanceContextFunction;
     private FirstInstance firstInstanceHandler;
 
-    private Function<Unique4jInstance.OtherInstanceContext, Runnable> otherInstanceContextFunction;
+    private Function<Unique4j.OtherInstanceContext, Runnable> otherInstanceContextFunction;
     private OtherInstance otherInstanceHandler;
     private Runnable otherInstanceRunFunction;
 
-    public Unique4jInstanceImpl(Unique4jConfig config) {
+    public Unique4jAppInstance(Unique4jConfig config) {
         this.config = new ImmutableConfig(config);
     }
 
     @Override
-    public void requestSingleInstance(Consumer<Unique4jInstance.InstanceConfig> instanceConfig) throws IOException {
-        instanceConfig.accept(new Unique4jInstance.InstanceConfig() {
+    public void requestSingleInstance(Consumer<Unique4j.InstanceConfig> instanceConfig) throws IOException {
+        instanceConfig.accept(new Unique4j.InstanceConfig() {
             @Override
-            public Unique4jInstance.InstanceConfig firstInstance(Function<Unique4jInstance.FirstInstanceContext, Runnable> ctx) {
+            public Unique4j.InstanceConfig firstInstance(Function<Unique4j.FirstInstanceContext, Runnable> ctx) {
                 firstInstanceContextFunction = ctx;
                 return this;
             }
 
             @Override
-            public Unique4jInstance.InstanceConfig otherInstances(Function<Unique4jInstance.OtherInstanceContext, Runnable> ctx) {
+            public Unique4j.InstanceConfig otherInstances(Function<Unique4j.OtherInstanceContext, Runnable> ctx) {
                 otherInstanceContextFunction = ctx;
                 return this;
             }
@@ -67,17 +67,17 @@ class Unique4jInstanceImpl implements Unique4jInstance.InstanceSelector {
         }
     }
 
-    private class FirstInstanceContextImpl extends BaseContext implements Unique4jInstance.FirstInstanceContext {
+    private class FirstInstanceContextImpl extends BaseContext implements Unique4j.FirstInstanceContext {
         @Override
-        public Unique4jInstance.FirstInstanceContext otherInstancesListener(FirstInstance instance) {
+        public Unique4j.FirstInstanceContext otherInstancesListener(FirstInstance instance) {
             firstInstanceHandler = instance;
             return this;
         }
     }
 
-    private class OtherInstanceContextImpl extends BaseContext implements Unique4jInstance.OtherInstanceContext {
+    private class OtherInstanceContextImpl extends BaseContext implements Unique4j.OtherInstanceContext {
         @Override
-        public Unique4jInstance.OtherInstanceContext firstInstanceListener(OtherInstance instance) {
+        public Unique4j.OtherInstanceContext firstInstanceListener(OtherInstance instance) {
             otherInstanceHandler = instance;
             return this;
         }

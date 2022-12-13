@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-class BaseContext implements Unique4jInstance.Context {
+class BaseContext implements Unique4j.Context {
 
     @Override
     public Runnable waitForEvent(Consumer<Runnable> unlockInstance) {
