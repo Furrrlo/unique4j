@@ -10,6 +10,7 @@ class Unique4jIpcLock implements Unique4jLock {
 
     /** system temporary directory path */
     private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
+    private static final int MAX_CLIENT_TRIES = 5;
 
     public final ImmutableConfig config;
     private final FirstInstance firstInstanceHandler;
@@ -41,27 +42,41 @@ class Unique4jIpcLock implements Unique4jLock {
 
     @Override
     public boolean tryLock() {
-        // try to lock file
-        boolean locked0;
-        try {
-            lockRaf = new RandomAccessFile(config.getLockFile(), "rws");
-            fileLock = lockRaf.getChannel().tryLock();
-            locked.set(locked0 = fileLock != null);
-        } catch (IOException | OverlappingFileLockException e) {
-            locked0 = false;
-        }
+        for(int tries = 0; ; tries++) {
+            // try to lock file
+            boolean locked0;
+            try {
+                lockRaf = new RandomAccessFile(config.getLockFile(), "rws");
+                fileLock = lockRaf.getChannel().tryLock();
+                locked.set(locked0 = fileLock != null);
+            } catch (IOException | OverlappingFileLockException e) {
+                locked0 = false;
+            }
 
-        if (locked0) {
-            // locked file, we are the first to arrive
-            // try to start server
-            startServer();
-        } else {
+            if (locked0) {
+                // locked file, we are the first to arrive
+                // try to start server
+                startServer();
+                return true;
+            }
+
             // couldn't lock file, we are not the first instance
             // try to start client
-            doClient();
-        }
+            try {
+                doClient();
+                return false;
+            } catch (RetryLockException ex) {
+                if(tries < MAX_CLIENT_TRIES)
+                    continue;
 
-        return locked0;
+                final Throwable cause = ex.getCause();
+                if(cause instanceof Error)
+                    throw (Error) cause;
+                if(cause instanceof RuntimeException)
+                    throw (RuntimeException) cause;
+                throw new RuntimeException("Failed to start IPC client", cause);
+            }
+        }
     }
 
     private void startServer() {
@@ -114,15 +129,14 @@ class Unique4jIpcLock implements Unique4jLock {
         });
     }
 
-    private void doClient() {
+    private void doClient() throws RetryLockException {
         // try to establish connection to server
         final IpcClient client0;
         try {
             client0 = config.getIpcFactory().createIpcClient(new File(TEMP_DIR), config.getAppId());
         } catch (IOException e) {
-            // connection failed try to start server
-            startServer();
-            return;
+            // connection failed, re-try to get the lock cause maybe it was just released
+            throw new RetryLockException(e);
         }
 
         boolean validResponseFound;
@@ -154,8 +168,16 @@ class Unique4jIpcLock implements Unique4jLock {
         }
 
         if (!validResponseFound) {
-            // validation failed, this is the first instance
-            startServer();
+            // validation failed, the first instance might be shutting down
+            // re-try to get the lock cause maybe it was just released
+            throw new RetryLockException(new IOException("Received invalid or malformed response from the first instance"));
+        }
+    }
+
+    private static class RetryLockException extends Exception {
+
+        public RetryLockException(Throwable cause) {
+            super(cause);
         }
     }
 
