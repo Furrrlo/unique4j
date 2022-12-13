@@ -13,7 +13,7 @@ public interface Unique4jConfig {
                 .lockFile(new File(System.getProperty("java.io.tmpdir") + File.separator + appId + ".lock"))
                 .executorService(Executors.newFixedThreadPool(5))
                 .ipcFactory(new DynamicPortSocketIpcFactory(InetAddress.getLoopbackAddress(), 3000))
-                .exceptionHandler((server, client, e) -> {});
+                .exceptionHandler(JulUnexpectedExceptionHandler.INSTANCE);
     }
 
     String appId();
