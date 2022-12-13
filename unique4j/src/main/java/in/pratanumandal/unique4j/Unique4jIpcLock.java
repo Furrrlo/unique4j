@@ -204,6 +204,11 @@ class Unique4jIpcLock implements Unique4jLock {
         Files.deleteIfExists(getLockFile().toPath());
     }
 
+    @Override
+    public boolean isHeldByCurrentAppInstance() {
+        return locked.get();
+    }
+
     private File getLockFile() {
         return new File(config.getLockFolder(), "app.lock");
     }

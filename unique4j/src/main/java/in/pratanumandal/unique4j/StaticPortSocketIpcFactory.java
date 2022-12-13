@@ -11,6 +11,10 @@ public class StaticPortSocketIpcFactory extends SocketIpcFactory implements Port
     private final InetAddress address;
     private final int port;
 
+    public StaticPortSocketIpcFactory(int port) {
+        this(InetAddress.getLoopbackAddress(), port);
+    }
+
     public StaticPortSocketIpcFactory(InetAddress address, int port) {
         this.address = address;
         this.port = port;

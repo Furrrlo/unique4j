@@ -15,6 +15,10 @@ public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements Por
 
     private int actualPort = -1;
 
+    public DynamicPortSocketIpcFactory(int port) {
+        this(InetAddress.getLoopbackAddress(), port);
+    }
+
     public DynamicPortSocketIpcFactory(InetAddress address, int port) {
         this(address, port, Charset.defaultCharset());
     }
