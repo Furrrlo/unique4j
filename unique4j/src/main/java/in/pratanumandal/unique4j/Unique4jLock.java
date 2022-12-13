@@ -1,8 +1,10 @@
 package in.pratanumandal.unique4j;
 
+import java.io.IOException;
+
 public interface Unique4jLock {
 
-    boolean tryLock();
+    boolean tryLock() throws IOException;
 
-    void unlock();
+    void unlock() throws IOException;
 }

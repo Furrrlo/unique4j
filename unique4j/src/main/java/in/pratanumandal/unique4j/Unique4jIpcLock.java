@@ -41,7 +41,7 @@ class Unique4jIpcLock implements Unique4jLock {
     }
 
     @Override
-    public boolean tryLock() {
+    public boolean tryLock() throws IOException {
         for(int tries = 0; ; tries++) {
             // try to lock file
             boolean locked0;
@@ -74,6 +74,9 @@ class Unique4jIpcLock implements Unique4jLock {
                 final Throwable cause = ex.getCause();
                 if(notLockedException != null)
                     cause.addSuppressed(notLockedException);
+
+                if(cause instanceof IOException)
+                    throw (IOException) cause;
                 if(cause instanceof Error)
                     throw (Error) cause;
                 if(cause instanceof RuntimeException)
@@ -83,13 +86,9 @@ class Unique4jIpcLock implements Unique4jLock {
         }
     }
 
-    private void startServer() {
+    private void startServer() throws IOException {
         // try to start the server
-        try {
-            server = config.getIpcFactory().createIpcServer(new File(TEMP_DIR), config.getAppId());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        server = config.getIpcFactory().createIpcServer(new File(TEMP_DIR), config.getAppId());
 
         // server created successfully; this is the first instance
         // keep listening for data from other instances
@@ -133,7 +132,7 @@ class Unique4jIpcLock implements Unique4jLock {
         });
     }
 
-    private void doClient() throws RetryLockException {
+    private void doClient() throws RetryLockException, IOException {
         // try to establish connection to server
         final IpcClient client0;
         try {
@@ -167,8 +166,6 @@ class Unique4jIpcLock implements Unique4jLock {
             if(validResponseFound && otherInstanceHandler != null)
                 otherInstanceHandler.onFirstInstanceFound(client);
 
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
 
         if (!validResponseFound) {
@@ -186,28 +183,24 @@ class Unique4jIpcLock implements Unique4jLock {
     }
 
     @Override
-    public void unlock() {
+    public void unlock() throws IOException {
         if(!locked.getAndSet(false))
             throw new UnsupportedOperationException("Lock wasn't acquired by this app instance");
 
-        try {
-            server.close();
-            server = null;
+        server.close();
+        server = null;
 
-            // try to release file lock
-            if (fileLock != null)
-                fileLock.release();
-            fileLock = null;
+        // try to release file lock
+        if (fileLock != null)
+            fileLock.release();
+        fileLock = null;
 
-            // try to close lock file RAF object
-            if (lockRaf != null)
-                lockRaf.close();
-            lockRaf = null;
+        // try to close lock file RAF object
+        if (lockRaf != null)
+            lockRaf.close();
+        lockRaf = null;
 
-            // try to delete lock file
-            Files.deleteIfExists(config.getLockFile().toPath());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        // try to delete lock file
+        Files.deleteIfExists(config.getLockFile().toPath());
     }
 }
