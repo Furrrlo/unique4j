@@ -5,5 +5,5 @@ import java.io.IOException;
 @FunctionalInterface
 public interface OtherInstance {
 
-    void onFirstInstanceFound(IpcClient client) throws IOException;
+    void onFirstInstanceFound(IpcClient firstInstanceClient) throws IOException;
 }
