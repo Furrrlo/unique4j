@@ -4,12 +4,6 @@ import java.io.IOException;
 
 public interface Unique4jLock {
 
-    static Unique4jLock create(Unique4jConfig config,
-                               FirstInstance firstInstanceHandler,
-                               OtherInstance otherInstanceHandler) {
-        return new Unique4jIpcLock(config, firstInstanceHandler, otherInstanceHandler);
-    }
-
     /**
      * Acquires the lock only if it is free (so the app is the first instance)
      * at the time of invocation.

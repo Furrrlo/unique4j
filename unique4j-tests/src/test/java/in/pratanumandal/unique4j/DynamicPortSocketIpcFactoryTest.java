@@ -40,8 +40,7 @@ public class DynamicPortSocketIpcFactoryTest {
         FileUtils.writeStringToFile(file, "abcdefghi\njklmnop\n\rqrst", Charset.forName("UTF-8"));
 
         // create instance of Unique
-        Unique4jLock unique4j = Unique4jLock.create(
-                config,
+        Unique4jLock unique4j = Unique4j.withConfig(config).newLock(
                 otherInstanceClient -> {},
                 firstInstanceClient -> {});
 

@@ -14,7 +14,15 @@ public interface Unique4j {
         new Unique4jAppInstance(Unique4jConfig.createDefault(appId)).requestSingleInstance(instanceConfig);
     }
 
+    static Unique4jLock newLock(String appId,
+                                FirstInstance firstInstanceHandler,
+                                OtherInstance otherInstanceHandler) {
+        return new Unique4jIpcLock(Unique4jConfig.createDefault(appId), firstInstanceHandler, otherInstanceHandler);
+    }
+
     interface InstanceSelector {
+
+        Unique4jLock newLock(FirstInstance firstInstanceHandler, OtherInstance otherInstanceHandler);
 
         void requestSingleInstance(Consumer<InstanceConfig> instanceConfig) throws IOException;
     }

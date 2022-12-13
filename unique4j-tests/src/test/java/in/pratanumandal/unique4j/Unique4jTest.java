@@ -62,10 +62,12 @@ public class Unique4jTest {
 
 	@Test
 	public void testUnique4jBasic() throws IOException {
-		Unique4jLock unique = Unique4jLock.create(
-				Unique4jConfig.createDefault(getAppId())
+		Unique4jLock unique = Unique4j.withConfig(
+				Unique4jConfig
+						.createDefault(getAppId())
 						.ipcFactory(ipcFactory)
-						.exceptionHandler((s, c, e) -> {}),
+						.exceptionHandler((s, c, e) -> {})
+		).newLock(
 				otherInstanceClient -> {},
 				firstInstanceClient -> {}
 		);
@@ -104,8 +106,7 @@ public class Unique4jTest {
 
 		final Object lock = new Object();
 		final List<String> received = new CopyOnWriteArrayList<>();
-		final Unique4jLock unique1 = Unique4jLock.create(
-				config,
+		final Unique4jLock unique1 = Unique4j.withConfig(config).newLock(
 				otherInstanceClient -> {
 					final DataInputStream dis = new DataInputStream(otherInstanceClient.getInputStream());
 					final String receivedMsg = dis.readUTF();
@@ -117,8 +118,7 @@ public class Unique4jTest {
 					}
 				},
 				firstInstanceClient -> {});
-		final Unique4jLock unique2 = Unique4jLock.create(
-				config,
+		final Unique4jLock unique2 = Unique4j.withConfig(config).newLock(
 				otherInstanceClient -> {},
 				firstInstanceClient -> {
 					final DataOutputStream dos = new DataOutputStream(firstInstanceClient.getOutputStream());
@@ -187,8 +187,7 @@ public class Unique4jTest {
 	private Unique4jLock initializeUnique4j(Unique4jConfig config) throws IOException {
 
 		final AtomicReference<Unique4jLock> uniqueRef = new AtomicReference<>();
-		uniqueRef.set(Unique4jLock.create(
-				config,
+		uniqueRef.set(Unique4j.withConfig(config).newLock(
 				otherInstanceClient -> {
 					// release lock on first instance
 					uniqueRef.get().unlock();

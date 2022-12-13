@@ -20,6 +20,11 @@ class Unique4jAppInstance implements Unique4j.InstanceSelector {
     }
 
     @Override
+    public Unique4jLock newLock(FirstInstance firstInstanceHandler, OtherInstance otherInstanceHandler) {
+        return new Unique4jIpcLock(config, firstInstanceHandler, otherInstanceHandler);
+    }
+
+    @Override
     public void requestSingleInstance(Consumer<Unique4j.InstanceConfig> instanceConfig) throws IOException {
         instanceConfig.accept(new Unique4j.InstanceConfig() {
             @Override
@@ -36,8 +41,7 @@ class Unique4jAppInstance implements Unique4j.InstanceSelector {
         });
 
         final EnqueueingFirstInstance enqueueingFirstInstance;
-        final Unique4jLock lock = new Unique4jIpcLock(
-                config,
+        final Unique4jLock lock = newLock(
                 enqueueingFirstInstance = new EnqueueingFirstInstance(),
                 client -> {
                     if(otherInstanceContextFunction == null)
