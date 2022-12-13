@@ -124,8 +124,8 @@ class Unique4jIpcLock implements Unique4jLock {
 
                         if(firstInstanceHandler != null)
                             firstInstanceHandler.onOtherInstanceStarted(client);
-                    } catch (IOException e) {
-                        config.getExceptionHandler().unexpectedException(server, null, e);
+                    } catch (Throwable t) {
+                        config.getExceptionHandler().unexpectedException(server, null, t);
                     }
                 });
             }
