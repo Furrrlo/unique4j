@@ -36,11 +36,11 @@ It is compatible with Java 1.8+ and is platform independent.
 ### Gradle
 ```groovy
 dependencies {
-    implementation 'tk.pratanumandal:unique4j:2.0.0'
+    implementation 'io.github.furrrlo:unique4j:2.0.0'
     // For unix sockets in Java < 16
-    implementation 'tk.pratanumandal:unique4j-junixsocket:2.0.0'
+    implementation 'io.github.furrrlo:unique4j-junixsocket:2.0.0'
     // For unix sockets in Java 16+
-    implementation 'tk.pratanumandal:unique4j-unix-socket-channel:2.0.0'
+    implementation 'io.github.furrrlo:unique4j-unix-socket-channel:2.0.0'
 }
 ```
 
@@ -67,7 +67,7 @@ import java.io.IOException;
 public class Unique4jDemo {
 
     // unique application ID
-    public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.6";
+    public static String APP_ID = "io.github.furrrlo.unique4j-mlsdvo-20191511-#j.6";
 
     public static void main(String[] args) throws IOException {
         // create unique instance
@@ -196,5 +196,5 @@ The base library ships with:
 - StaticPortSocketIpcFactory: binds a TCP socket on the given port
 
 In addition, a unix socket can be used
-- In Java 16+ by adding the `tk.pratanumandal:unique4j-unix-socket-channel` Maven artifact, which uses [JEP-380: Unix domain socket channels](https://openjdk.org/jeps/380)
-- In Java < 16 by adding the `tk.pratanumandal:unique4j-junixsocket` Maven artifact, which uses the [junixsocket library](https://kohlschutter.github.io/junixsocket/)
+- In Java 16+ by adding the `io.github.furrrlo:unique4j-unix-socket-channel` Maven artifact, which uses [JEP-380: Unix domain socket channels](https://openjdk.org/jeps/380)
+- In Java < 16 by adding the `io.github.furrrlo:unique4j-junixsocket` Maven artifact, which uses the [junixsocket library](https://kohlschutter.github.io/junixsocket/)

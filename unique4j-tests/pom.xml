@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>in.pratanumandal</groupId>
+        <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j-parent</artifactId>
         <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
@@ -20,19 +20,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>in.pratanumandal</groupId>
+            <groupId>io.github.furrrlo</groupId>
             <artifactId>unique4j</artifactId>
             <version>2.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>in.pratanumandal</groupId>
+            <groupId>io.github.furrrlo</groupId>
             <artifactId>unique4j-unix-socket-channel</artifactId>
             <version>2.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>in.pratanumandal</groupId>
+            <groupId>io.github.furrrlo</groupId>
             <artifactId>unique4j-junixsocket</artifactId>
             <version>2.0.0</version>
             <scope>test</scope>
