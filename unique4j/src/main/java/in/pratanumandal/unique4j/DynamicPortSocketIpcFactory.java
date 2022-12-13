@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements PortIpcFactory {
 
@@ -28,12 +29,9 @@ public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements Por
     public IpcServer createIpcServer(File parentDirectory, String appId) throws IOException {
         final ServerSocket socket = createServerSocket(parentDirectory, appId);
 
-        BufferedWriter bw = null;
-        try {
-            final File portFile = new File(parentDirectory, "app.port");
-            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(portFile), charset));
+        final File portFile = new File(parentDirectory, "app.port");
+        try(BufferedWriter bw = Files.newBufferedWriter(portFile.toPath(), charset)) {
             bw.write(String.valueOf(actualPort));
-            bw.close();
             return new SocketIpcServer(socket) {
                 @Override
                 public void close() throws IOException {
@@ -45,16 +43,9 @@ public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements Por
         } catch (IOException ex) {
 
             try {
-                if(bw != null)
-                    bw.close();
-            } catch (IOException ignored) {
-                // We don't want to swallow the other exception
-            }
-
-            try {
                 socket.close();
-            } catch (IOException ignored) {
-                // We don't want to swallow the other exception
+            } catch (IOException closeEx) {
+                ex.addSuppressed(closeEx);
             }
 
             throw ex;
@@ -76,27 +67,15 @@ public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements Por
 
     @Override
     public Socket createClientSocket(File parentDirectory, String appId) throws IOException {
-        BufferedReader br = null;
-        try {
-            final File portFile = new File(parentDirectory, "app.port");
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(portFile), charset));
-
+        final File portFile = new File(parentDirectory, "app.port");
+        try(BufferedReader br = Files.newBufferedReader(portFile.toPath(), charset)) {
             try {
                 this.actualPort = Integer.parseInt(br.readLine());
             } catch (NumberFormatException ex) {
                 throw new IOException("Corrupted port file " + portFile, ex);
             }
 
-            br.close();
             return new Socket(address, actualPort);
-        } catch (IOException ex) {
-            try {
-                if(br != null)
-                    br.close();
-            } catch (IOException ignored) {
-                // We don't want to swallow the other exception
-            }
-            throw ex;
         }
     }
 
