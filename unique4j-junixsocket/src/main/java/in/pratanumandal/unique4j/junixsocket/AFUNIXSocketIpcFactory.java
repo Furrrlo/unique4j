@@ -32,7 +32,7 @@ public class AFUNIXSocketIpcFactory extends SocketIpcFactory {
 
     @Override
     protected ServerSocket createServerSocket(File parentDirectory, String appId) throws IOException {
-        File socketFile = new File(parentDirectory, appId + ".socket");
+        File socketFile = new File(parentDirectory, "app.socket");
         AFUNIXServerSocket socket = AFUNIXServerSocket.newInstance();
         socket.bind(AFUNIXSocketAddress.of(socketFile));
         return socket;
@@ -40,7 +40,7 @@ public class AFUNIXSocketIpcFactory extends SocketIpcFactory {
 
     @Override
     protected Socket createClientSocket(File parentDirectory, String appId) throws IOException {
-        File socketFile = new File(parentDirectory, appId + ".socket");
+        File socketFile = new File(parentDirectory, "app.socket");
         AFUNIXSocket socket = AFUNIXSocket.newInstance();
         socket.connect(AFUNIXSocketAddress.of(socketFile));
         return socket;

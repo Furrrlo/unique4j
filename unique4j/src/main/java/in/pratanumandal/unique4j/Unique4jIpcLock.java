@@ -8,8 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class Unique4jIpcLock implements Unique4jLock {
 
-    /** system temporary directory path */
-    private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
     private static final int MAX_CLIENT_TRIES = 5;
 
     public final ImmutableConfig config;
@@ -47,7 +45,9 @@ class Unique4jIpcLock implements Unique4jLock {
             boolean locked0;
             Throwable notLockedException = null;
             try {
-                lockRaf = new RandomAccessFile(config.getLockFile(), "rws");
+                // Create the parent folder
+                Files.createDirectories(config.getLockFolder().toPath());
+                lockRaf = new RandomAccessFile(getLockFile(), "rws");
                 fileLock = lockRaf.getChannel().tryLock();
                 locked.set(locked0 = fileLock != null);
             } catch (IOException | OverlappingFileLockException e) {
@@ -88,7 +88,7 @@ class Unique4jIpcLock implements Unique4jLock {
 
     private void startServer() throws IOException {
         // try to start the server
-        server = config.getIpcFactory().createIpcServer(new File(TEMP_DIR), config.getAppId());
+        server = config.getIpcFactory().createIpcServer(config.getLockFolder(), config.getAppId());
 
         // server created successfully; this is the first instance
         // keep listening for data from other instances
@@ -136,7 +136,7 @@ class Unique4jIpcLock implements Unique4jLock {
         // try to establish connection to server
         final IpcClient client0;
         try {
-            client0 = config.getIpcFactory().createIpcClient(new File(TEMP_DIR), config.getAppId());
+            client0 = config.getIpcFactory().createIpcClient(config.getLockFolder(), config.getAppId());
         } catch (IOException e) {
             // connection failed, re-try to get the lock cause maybe it was just released
             throw new RetryLockException(e);
@@ -201,6 +201,10 @@ class Unique4jIpcLock implements Unique4jLock {
         lockRaf = null;
 
         // try to delete lock file
-        Files.deleteIfExists(config.getLockFile().toPath());
+        Files.deleteIfExists(getLockFile().toPath());
+    }
+
+    private File getLockFile() {
+        return new File(config.getLockFolder(), "app.lock");
     }
 }

@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 public class MutableConfig implements Unique4jConfig {
 
     private String appId;
-    private File lockFile;
+    private File lockFolder;
     private IpcFactory ipcFactory;
     private ExecutorService executorService;
     private UnexpectedExceptionHandler exceptionHandler;
@@ -23,13 +23,13 @@ public class MutableConfig implements Unique4jConfig {
     }
 
     @Override
-    public File lockFile() {
-        return lockFile;
+    public File lockFolder() {
+        return lockFolder;
     }
 
     @Override
-    public Unique4jConfig lockFile(File lockFile) {
-        this.lockFile = lockFile;
+    public Unique4jConfig lockFolder(File lockFolder) {
+        this.lockFolder = lockFolder;
         return this;
     }
 

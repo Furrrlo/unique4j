@@ -32,7 +32,7 @@ public class UnixSocketChannelIpcFactory extends SocketChannelIpcFactory {
 
     @Override
     protected ServerSocketChannel createServerSocket(File parentDirectory, String appId) throws IOException {
-        Path socketPath = parentDirectory.toPath().resolve(appId + ".socket");
+        Path socketPath = parentDirectory.toPath().resolve("app.socket");
         Files.deleteIfExists(socketPath);
 
         UnixDomainSocketAddress socketAddress = UnixDomainSocketAddress.of(socketPath);
@@ -43,7 +43,7 @@ public class UnixSocketChannelIpcFactory extends SocketChannelIpcFactory {
 
     @Override
     protected SocketChannel createClientSocket(File parentDirectory, String appId) throws IOException {
-        Path socketPath = parentDirectory.toPath().resolve(appId + ".socket");
+        Path socketPath = parentDirectory.toPath().resolve("app.socket");
         UnixDomainSocketAddress socketAddress = UnixDomainSocketAddress.of(socketPath);
         SocketChannel channel = SocketChannel.open(StandardProtocolFamily.UNIX);
         channel.connect(socketAddress);

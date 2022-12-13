@@ -10,7 +10,7 @@ public interface Unique4jConfig {
     static Unique4jConfig createDefault(String appId) {
         return new MutableConfig()
                 .appId(appId)
-                .lockFile(new File(System.getProperty("java.io.tmpdir") + File.separator + appId + ".lock"))
+                .lockFolder(new File(System.getProperty("java.io.tmpdir") + File.separator + appId))
                 .executorService(Executors.newFixedThreadPool(5))
                 .ipcFactory(new DynamicPortSocketIpcFactory(InetAddress.getLoopbackAddress(), 3000))
                 .exceptionHandler(JulUnexpectedExceptionHandler.INSTANCE);
@@ -20,9 +20,9 @@ public interface Unique4jConfig {
 
     Unique4jConfig appId(String appId);
 
-    File lockFile();
+    File lockFolder();
 
-    Unique4jConfig lockFile(File lockFile);
+    Unique4jConfig lockFolder(File lockFolder);
 
     IpcFactory ipcFactory();
 

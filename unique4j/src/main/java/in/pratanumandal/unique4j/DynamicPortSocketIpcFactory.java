@@ -30,7 +30,7 @@ public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements Por
 
         BufferedWriter bw = null;
         try {
-            final File portFile = new File(parentDirectory, appId + ".port");
+            final File portFile = new File(parentDirectory, "app.port");
             bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(portFile), charset));
             bw.write(String.valueOf(actualPort));
             bw.close();
@@ -78,7 +78,7 @@ public class DynamicPortSocketIpcFactory extends SocketIpcFactory implements Por
     public Socket createClientSocket(File parentDirectory, String appId) throws IOException {
         BufferedReader br = null;
         try {
-            final File portFile = new File(parentDirectory, appId + ".port");
+            final File portFile = new File(parentDirectory, "app.port");
             br = new BufferedReader(new InputStreamReader(new FileInputStream(portFile), charset));
 
             try {

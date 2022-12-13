@@ -14,7 +14,7 @@ class ImmutableConfig {
 
     public ImmutableConfig(Unique4jConfig config) {
         this.appId = Objects.requireNonNull(config.appId());
-        this.lockFile = Objects.requireNonNull(config.lockFile());
+        this.lockFile = Objects.requireNonNull(config.lockFolder());
         this.ipcFactory = Objects.requireNonNull(config.ipcFactory());
         this.executorService = Objects.requireNonNull(config.executorService());
         this.exceptionHandler = Objects.requireNonNull(config.exceptionHandler());
@@ -24,7 +24,7 @@ class ImmutableConfig {
         return appId;
     }
 
-    public File getLockFile() {
+    public File getLockFolder() {
         return lockFile;
     }
 
