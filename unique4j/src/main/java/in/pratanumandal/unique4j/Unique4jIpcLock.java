@@ -74,7 +74,18 @@ class Unique4jIpcLock implements Unique4jLock {
             if (locked0) {
                 // locked file, we are the first to arrive
                 // try to start server
-                startServer();
+                try {
+                    startServer();
+                } catch (Throwable t) {
+                    // Failed for some reason, unlock before rethrowing
+                    try {
+                        unlock();
+                    } catch (Throwable t0) {
+                        t.addSuppressed(t0);
+                    }
+
+                    throw t;
+                }
                 return true;
             }
 
@@ -203,7 +214,8 @@ class Unique4jIpcLock implements Unique4jLock {
         if(!locked.getAndSet(false))
             throw new UnsupportedOperationException("Lock wasn't acquired by this app instance");
 
-        server.close();
+        if(server != null)
+            server.close();
         server = null;
 
         // try to release file lock
