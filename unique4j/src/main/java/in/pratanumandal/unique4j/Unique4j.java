@@ -6,8 +6,7 @@ import java.util.function.Function;
 
 public interface Unique4j {
 
-    static InstanceSelector config(String appId, Function<Unique4jConfig, Unique4jConfig> makeConfig) {
-        final Unique4jConfig config = makeConfig.apply(Unique4jConfig.createDefault(appId));
+    static InstanceSelector withConfig(Unique4jConfig config) {
         return new Unique4jAppInstance(config);
     }
 
