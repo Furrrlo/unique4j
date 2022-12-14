@@ -6,7 +6,7 @@
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Unique4j</name>
+	<name>Unique4j Parent</name>
 	<url>https://github.com/Furrrlo/unique4j</url>
 	<description>Java library to allow only single instance of a java application to run and enable communication between first instance and subsequent instances</description>
 
