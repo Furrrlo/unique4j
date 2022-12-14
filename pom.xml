@@ -171,6 +171,15 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
+						<configuration>
+							<failOnError>false</failOnError>
+							<additionalOptions>
+								<additionalOption>-Xdoclint:none</additionalOption>
+							</additionalOptions>
+							<sourceFileExcludes>
+								<sourceFileExclude>**/module-info.java</sourceFileExclude>
+							</sourceFileExcludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
