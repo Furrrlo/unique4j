@@ -12,11 +12,6 @@
     <name>Unique4j Unix SocketChannel Implementation</name>
     <description>Unique4j IPC implementation using Java 16+ Unix SocketChannels</description>
 
-    <properties>
-        <maven.compiler.target>16</maven.compiler.target>
-        <maven.compiler.source>16</maven.compiler.source>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.github.furrrlo</groupId>
@@ -24,4 +19,28 @@
             <version>2.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- target Java 16+ -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <source>16</source>
+                            <target>16</target>
+                            <release>16</release>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
