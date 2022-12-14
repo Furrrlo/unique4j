@@ -34,8 +34,8 @@
 		<url>https://github.com/Furrrlo/unique4j</url>
 		<connection>scm:git:https://github.com/Furrrlo/unique4j.git</connection>
 		<developerConnection>scm:git:https://github.com/Furrrlo/unique4j.git</developerConnection>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -132,22 +132,23 @@
 			</plugin>
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
-			    <artifactId>nexus-staging-maven-plugin</artifactId>
-			    <version>1.6.13</version>
-			    <executions>
-				    <execution>
-					    <id>default-deploy</id>
-					    <phase>deploy</phase>
-					    <goals>
-					    	<goal>deploy</goal>
-					    </goals>
-				    </execution>
-			    </executions>
-			    <configuration>
-			    	<serverId>ossrh</serverId>
-			    	<nexusUrl>https://s01.oss.sonatype.org</nexusUrl>
-			    </configuration>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.13</version>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://s01.oss.sonatype.org</nexusUrl>
+				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -161,6 +162,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
