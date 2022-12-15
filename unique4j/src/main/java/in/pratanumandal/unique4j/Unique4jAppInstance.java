@@ -1,18 +1,17 @@
 package in.pratanumandal.unique4j;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 class Unique4jAppInstance implements Unique4j.InstanceSelector {
 
     private final ImmutableConfig config;
 
-    private UncheckedFunction<Unique4j.FirstInstanceContext, UncheckedRunnable> firstInstanceContextFunction;
     private FirstInstance firstInstanceHandler;
-
-    private UncheckedFunction<Unique4j.OtherInstanceContext, UncheckedRunnable> otherInstanceContextFunction;
     private OtherInstance otherInstanceHandler;
 
     public Unique4jAppInstance(Unique4jConfig config) {
@@ -27,21 +26,74 @@ class Unique4jAppInstance implements Unique4j.InstanceSelector {
     @Override
     public void requestSingleInstance(Consumer<Unique4j.InstanceConfig> instanceConfig)
             throws IOException, ExecutionException {
+        final AtomicReference<UncheckedFunction<Unique4j.FirstInstanceContext, UncheckedRunnable>> firstInstanceContextFunctionRef
+                = new AtomicReference<>();
+        final AtomicReference<UncheckedFunction<Unique4j.OtherInstanceContext, UncheckedRunnable>> otherInstanceContextFunctionRef
+                = new AtomicReference<>();
         instanceConfig.accept(new Unique4j.InstanceConfig() {
             @Override
             public Unique4j.InstanceConfig firstInstance(UncheckedFunction<Unique4j.FirstInstanceContext, UncheckedRunnable> ctx) {
-                firstInstanceContextFunction = ctx;
+                firstInstanceContextFunctionRef.set(ctx);
                 return this;
             }
 
             @Override
             public Unique4j.InstanceConfig otherInstances(UncheckedFunction<Unique4j.OtherInstanceContext, UncheckedRunnable> ctx) {
-                otherInstanceContextFunction = ctx;
+                otherInstanceContextFunctionRef.set(ctx);
                 return this;
             }
         });
 
-        final CompletableFuture<UncheckedRunnable> otherInstanceRunFunction = new CompletableFuture<>();
+        final UncheckedFunction<Unique4j.FirstInstanceContext, UncheckedRunnable> firstInstanceContextFunction =
+                firstInstanceContextFunctionRef.get();
+        final UncheckedFunction<Unique4j.OtherInstanceContext, UncheckedRunnable> otherInstanceContextFunction =
+                otherInstanceContextFunctionRef.get();
+        doWork(
+                firstInstanceContextFunction != null ? ctx -> {
+                    final UncheckedRunnable runnable = firstInstanceContextFunction.applyUnchecked(ctx);
+                    return runnable != null ? () -> {
+                        runnable.runUnchecked();
+                        return null;
+                    } : null;
+                } : null,
+                otherInstanceContextFunction != null ? ctx -> {
+                    final UncheckedRunnable runnable = otherInstanceContextFunction.applyUnchecked(ctx);
+                    return runnable != null ? () -> {
+                        runnable.runUnchecked();
+                        return null;
+                    } : null;
+                } : null
+        );
+    }
+
+    @Override
+    public <T> T requestSingleInstanceThenReturn(Consumer<Unique4j.InstanceConfigReturning<T>> instanceConfig) throws IOException, ExecutionException {
+        final AtomicReference<UncheckedFunction<Unique4j.FirstInstanceContext, Callable<T>>> firstInstanceContextFunctionRef
+                = new AtomicReference<>();
+        final AtomicReference<UncheckedFunction<Unique4j.OtherInstanceContext, Callable<T>>> otherInstanceContextFunctionRef
+                = new AtomicReference<>();
+        instanceConfig.accept(new Unique4j.InstanceConfigReturning<>() {
+            @Override
+            public Unique4j.InstanceConfigReturning<T> firstInstance(UncheckedFunction<Unique4j.FirstInstanceContext, Callable<T>> ctx) {
+                firstInstanceContextFunctionRef.set(ctx);
+                return this;
+            }
+
+            @Override
+            public Unique4j.InstanceConfigReturning<T> otherInstances(UncheckedFunction<Unique4j.OtherInstanceContext, Callable<T>> ctx) {
+                otherInstanceContextFunctionRef.set(ctx);
+                return this;
+            }
+        });
+
+        return doWork(firstInstanceContextFunctionRef.get(), otherInstanceContextFunctionRef.get());
+    }
+
+    private <T> T doWork(
+            UncheckedFunction<Unique4j.FirstInstanceContext, Callable<T>> firstInstanceContextFunction,
+            UncheckedFunction<Unique4j.OtherInstanceContext, Callable<T>> otherInstanceContextFunction
+    ) throws IOException, ExecutionException {
+        final CompletableFuture<Callable<T>> otherInstanceRunFunction = new CompletableFuture<>();
         final EnqueueingFirstInstance enqueueingFirstInstance;
         final Unique4jLock lock = newLock(
                 enqueueingFirstInstance = new EnqueueingFirstInstance(),
@@ -63,11 +115,11 @@ class Unique4jAppInstance implements Unique4j.InstanceSelector {
         if(locked) {
             try {
                 if (firstInstanceContextFunction != null) {
-                    UncheckedRunnable firstInstanceRunFunction = firstInstanceContextFunction.applyUnchecked(new FirstInstanceContextImpl());
+                    Callable<T> firstInstanceRunFunction = firstInstanceContextFunction.applyUnchecked(new FirstInstanceContextImpl());
                     enqueueingFirstInstance.setActualFirstInstance(firstInstanceHandler);
 
                     if (firstInstanceRunFunction != null)
-                        firstInstanceRunFunction.runUnchecked();
+                        return firstInstanceRunFunction.call();
                 }
             } catch (Exception ex) {
                 throw new ExecutionException("Failed to execute single instance function", ex);
@@ -76,15 +128,17 @@ class Unique4jAppInstance implements Unique4j.InstanceSelector {
             }
         } else {
             try {
-                final UncheckedRunnable otherInstanceRunnable = otherInstanceRunFunction.get();
+                final Callable<T> otherInstanceRunnable = otherInstanceRunFunction.get();
                 if (otherInstanceRunnable != null)
-                    otherInstanceRunnable.runUnchecked();
+                    return otherInstanceRunnable.call();
             } catch (ExecutionException ex) {
                 throw new ExecutionException("Failed to execute other instances function", ex.getCause());
             } catch (Exception ex) {
                 throw new ExecutionException("Failed to execute other instances function", ex);
             }
         }
+
+        return null;
     }
 
     private class FirstInstanceContextImpl extends BaseContext implements Unique4j.FirstInstanceContext {

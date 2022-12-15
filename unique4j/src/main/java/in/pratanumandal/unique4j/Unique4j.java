@@ -1,9 +1,11 @@
 package in.pratanumandal.unique4j;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public interface Unique4j {
 
     static InstanceSelector withConfig(Unique4jConfig config) {
@@ -13,6 +15,11 @@ public interface Unique4j {
     static void requestSingleInstance(String appId, Consumer<InstanceConfig> instanceConfig)
             throws IOException, ExecutionException {
         new Unique4jAppInstance(Unique4jConfig.createDefault(appId)).requestSingleInstance(instanceConfig);
+    }
+
+    static <T> T requestSingleInstanceThenReturn(String appId, Consumer<InstanceConfigReturning<T>> instanceConfig)
+            throws IOException, ExecutionException {
+        return new Unique4jAppInstance(Unique4jConfig.createDefault(appId)).requestSingleInstanceThenReturn(instanceConfig);
     }
 
     static Unique4jLock newLock(String appId,
@@ -26,6 +33,8 @@ public interface Unique4j {
         Unique4jLock newLock(FirstInstance firstInstanceHandler, OtherInstance otherInstanceHandler);
 
         void requestSingleInstance(Consumer<InstanceConfig> instanceConfig) throws IOException, ExecutionException;
+
+        <T> T requestSingleInstanceThenReturn(Consumer<InstanceConfigReturning<T>> instanceConfig) throws IOException, ExecutionException;
     }
 
     interface InstanceConfig {
@@ -35,11 +44,22 @@ public interface Unique4j {
         InstanceConfig otherInstances(UncheckedFunction<OtherInstanceContext, UncheckedRunnable> ctx);
     }
 
+    interface InstanceConfigReturning<T> {
+
+        InstanceConfigReturning<T> firstInstance(UncheckedFunction<FirstInstanceContext, Callable<T>> ctx);
+
+        InstanceConfigReturning<T> otherInstances(UncheckedFunction<OtherInstanceContext, Callable<T>> ctx);
+    }
+
     interface Context {
 
         UncheckedRunnable waitForEvent(Consumer<Runnable> unlockInstance);
 
+        <T> Callable<T> waitForEventThenReturn(Consumer<Consumer<T>> unlockInstance);
+
         UncheckedRunnable doNothing();
+
+        <T> Callable<T> doNothingThenReturn(T value);
 
         UncheckedRunnable thenExit(int statusCode);
     }

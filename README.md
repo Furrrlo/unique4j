@@ -73,7 +73,7 @@ public class Unique4jDemo {
 
     public static void main(String[] args) throws IOException, ExecutionException {
         // create unique instance
-        Unique4j.requestSingleInstance(APP_ID, instance -> instance.firstInstance(ctx -> {
+        int exitCode = Unique4j.requestSingleInstanceThenReturn(APP_ID, instance -> instance.firstInstance(ctx -> {
             // This is the first app instance: here the application can be started up.
             // Make swing gui, start stuff up, etc.
             // The lock is already held, no other app instance can take it
@@ -106,13 +106,14 @@ public class Unique4jDemo {
 
             // Do heavy lifting here:
             // - Start GUI and wait for the user to close it
-            return ctx.waitForEvent(onFrameDispose::add);
+            return ctx.waitForEventThenReturn(unlock -> onFrameDispose.add(() -> unlock.accept(0)));
             // - Do lengthy task that takes a lot of time
             return () -> {
                 for (int i = 0; i < 100000; i++)
                     System.out.println("yay");
             };
             // Once this Runnable ends, the instance lock will be released automatically
+            // Do not call System#exit() here, as it won't properly clean up the lock
         }).otherInstances(ctx -> {
             // Called in case this is not the first app instance
 
@@ -125,11 +126,12 @@ public class Unique4jDemo {
             });
 
             // Do other stuff in here, in case it's needed (ex. shutting down, etc)
-            return ctx.thenExit(0);
+            return ctx.doNothingThenReturn(0);
         }));
 
         // Execution will continue here once either the firstInstance inner lambda or
         // otherInstances inner lambda is executed
+        System.exit(exitCode);
     }
 }
 ```
