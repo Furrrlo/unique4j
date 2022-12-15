@@ -17,19 +17,19 @@ It is compatible with Java 1.8+ and is platform independent.
     <dependency>
         <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j</artifactId>
-        <version>2.0.1</version>
+        <version>2.1.0</version>
     </dependency>
     <!-- For unix sockets in Java < 16 -->
     <dependency>
         <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j-junixsocket</artifactId>
-        <version>2.0.1</version>
+        <version>2.1.0</version>
     </dependency>
     <!-- For unix sockets in Java 16+ -->
     <dependency>
         <groupId>io.github.furrrlo</groupId>
         <artifactId>unique4j-unix-socket-channel</artifactId>
-        <version>2.0.1</version>
+        <version>2.1.0</version>
     </dependency>
 </dependencies>
 ```
@@ -37,11 +37,11 @@ It is compatible with Java 1.8+ and is platform independent.
 ### Gradle
 ```groovy
 dependencies {
-    implementation 'io.github.furrrlo:unique4j:2.0.1'
+    implementation 'io.github.furrrlo:unique4j:2.1.0'
     // For unix sockets in Java < 16
-    implementation 'io.github.furrrlo:unique4j-junixsocket:2.0.1'
+    implementation 'io.github.furrrlo:unique4j-junixsocket:2.1.0'
     // For unix sockets in Java 16+
-    implementation 'io.github.furrrlo:unique4j-unix-socket-channel:2.0.1'
+    implementation 'io.github.furrrlo:unique4j-unix-socket-channel:2.1.0'
 }
 ```
 
