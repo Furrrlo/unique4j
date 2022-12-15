@@ -64,13 +64,14 @@ public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.8";
 ```java
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class Unique4jDemo {
 
     // unique application ID
     public static String APP_ID = "io.github.furrrlo.unique4j-mlsdvo-20191511-#j.6";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ExecutionException {
         // create unique instance
         Unique4j.requestSingleInstance(APP_ID, instance -> instance.firstInstance(ctx -> {
             // This is the first app instance: here the application can be started up.
@@ -171,13 +172,16 @@ public class Unique4jDemo {
 ## Configuration
 
 Configuration options can be changed by using `Unique4j#withConfig(Unique4jConfig)`
+
 ```java
+import java.util.concurrent.ExecutionException;
+
 public class Unique4jDemo {
 
     // unique application ID
     public static String APP_ID = "tk.pratanumandal.unique4j-mlsdvo-20191511-#j.6";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ExecutionException {
         final Unique4jLock lock = Unique4j
                 .withConfig(Unique4jConfig.createDefault(APP_ID))
                 .requestSingleInstance(instance -> { /* ... */ });
