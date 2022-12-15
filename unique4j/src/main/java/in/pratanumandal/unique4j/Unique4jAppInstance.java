@@ -67,12 +67,13 @@ class Unique4jAppInstance implements Unique4j.InstanceSelector {
     }
 
     @Override
+    @SuppressWarnings("Convert2Diamond") // intelliJ thinks the project uses Java9 :I
     public <T> T requestSingleInstanceThenReturn(Consumer<Unique4j.InstanceConfigReturning<T>> instanceConfig) throws IOException, ExecutionException {
         final AtomicReference<UncheckedFunction<Unique4j.FirstInstanceContext, Callable<T>>> firstInstanceContextFunctionRef
                 = new AtomicReference<>();
         final AtomicReference<UncheckedFunction<Unique4j.OtherInstanceContext, Callable<T>>> otherInstanceContextFunctionRef
                 = new AtomicReference<>();
-        instanceConfig.accept(new Unique4j.InstanceConfigReturning<>() {
+        instanceConfig.accept(new Unique4j.InstanceConfigReturning<T>() {
             @Override
             public Unique4j.InstanceConfigReturning<T> firstInstance(UncheckedFunction<Unique4j.FirstInstanceContext, Callable<T>> ctx) {
                 firstInstanceContextFunctionRef.set(ctx);
